@@ -88,5 +88,5 @@ RSocket 中的负载分成元数据和数据两种，二者可以使用不同的
 
 ## 参考
  
-[RSocket 官网](http://rsocket.io/)
-[SpringBoot features RSocket](https://docs.spring.io/spring-boot/docs/2.2.x/reference/html/spring-boot-features.html#boot-features-rsocket)
+* [RSocket 官网](http://rsocket.io/)
+* [SpringBoot features RSocket](https://docs.spring.io/spring-boot/docs/2.2.x/reference/html/spring-boot-features.html#boot-features-rsocket)
