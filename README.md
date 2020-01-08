@@ -86,6 +86,35 @@ RSocket 中的负载分成元数据和数据两种，二者可以使用不同的
 | rsocket-transport-akka | Akka | TCP 和 WebSocket |
 | rsocket-transport-aeron | Aeron | UDP |
 
+## RSocket 进阶
+
+### 调试
+
+ 由于 RSocket 使用二进制协议，所以调试 RSocket 应用消息比 HTTP/1 协议要复杂一些。从 RSocket 帧的二进制内容无法直接得知帧的含义。需要辅助工具来解析二进制格式消息。对 Java 应用来说，只需要把日志记录器 io.rsocket.FrameLogger 设置为 DEBUG 级别，就可以看到每个 RSocket 帧的内容。
+ 如下给出 REQUEST_RESPONSE 帧的调试信息。除此之外，还可以使用 Wireshark 工具及其 RSocket 插件。
+
+```java
+21:06:21.418 [reactor-tcp-nio-2] DEBUG io.rsocket.FrameLogger - receiving -> 
+Frame => Stream ID: 1 Type: NEXT_COMPLETE Flags: 0b1100000 Length: 19
+Data:
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| 45 43 48 4f 20 3e 3e 20 68 65 6c 6c 6f          |ECHO >> hello   |
++--------+-------------------------------------------------+----------------+
+ECHO >> hello
+```
+
+### 代码零拷贝
+
+在 示例代码 的AbstractRSocket 类的实现中，对于接收的 Payload 对象是直接使用的。这是因为 RSocket 默认对请求的负载进行了拷贝。
+这样的做法在实现上虽然简单，但会带来性能上的损失，增加响应时间。为了提高性能，可以通过 ServerRSocketFactory 类或 ClientRSocketFactory 类
+的 frameDecoder() 方法来指定 PayloadDecoder 接口的实现。PayloadDecoder.ZERO_COPY 是内置提供的零拷贝实现类。当使用了负载零拷贝之后，
+负载的内容不再被拷贝。需要通过 Payload 对象的 release() 方法来手动释放负载对应的内存，否则会造成内存泄漏。如果使用 Spring Boot 提供的 RSocket 支持，
+PayloadDecoder.ZERO_COPY 默认已经被启用，并由 Spring 负责相应的内存释放。
+
+
+
 ## 参考
  
 * [RSocket 官网](http://rsocket.io/)
